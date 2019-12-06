@@ -1,6 +1,8 @@
 use std::fs::read_to_string;
 
 const ERR_MSG: &str = "No entry found";
+const EXPECTED_FIRST: i64 = 19690720;
+const DELTA: i64 = 331776;
 
 fn string_to_vec(input: String) -> Vec<i64> {
     input
@@ -54,91 +56,72 @@ fn run_parameterized_program(mut nums: Vec<i64>, noun: i64, verb: i64) -> Result
     run_program(nums)
 }
 
-fn part1() -> Result<(), ()> {
-    let input_string = read_to_string("input.txt").expect("");
+fn part1() {
+    let input_string = read_to_string("input.txt").expect("Failed to open input.txt");
     let nums = string_to_vec(input_string);
-    let res = run_parameterized_program(nums, 12, 2)?;
-    println!("{:?}", res);
-    Ok(())
+    let res = run_parameterized_program(nums, 12, 2).expect("invalid program input");
+    let first = res.get(0).unwrap();
+    println!("Solution for part 1 = {}", first);
 }
 
-fn part2() -> Result<(), ()> {
-    let input_string = read_to_string("input.txt").expect("");
-    let nums = string_to_vec(input_string);
-
-    // Increasing noun, increased result by 331776
-    // Increasing verb, increased result by 1
-    // Increasing both, increased result by 331777
-    // Expected output                      19690720
-    // Find the noun and verb using pseudo binary search
-
-    let expected_first_entry: i64 = 19690720;
-
-    let candidate_nouns: Vec<i64> = (0..100).collect();
-    let candidate_verbs: Vec<i64> = (0..100).collect();
-
-    let mut noun_i: i64 = 50;
-    let mut verb_i: i64 = 0;
-
-    let mut first_entry;
-    let mut diff = i64::max_value();
-
-//    let left = 0;
-//    let right = 99;
-//    let mid = left + (right + 1) / 2;
-
-    while diff.abs() > 331776 {
+fn compute_noun(nums: &Vec<i64>) -> Result<i64, ()> {
+    for noun in 0..100 {
         let clone = nums.clone();
-        println!("noun_i={}", noun_i);
-        if diff > 0 {
-            // ceil because it turned out to provide the correct solution
-            noun_i += ((100 - noun_i) as f64 / 2.0).ceil() as i64;
-        } else {
-            noun_i -= ((100 - noun_i) as f64 / 2.0).ceil() as i64;
-        }
-
-        let noun = *candidate_nouns.get(noun_i as usize).unwrap();
 
         if let Ok(res) = run_parameterized_program(clone, noun, 0) {
-            first_entry = *res.get(0).unwrap();
-            diff = expected_first_entry - first_entry;
+            let first_entry = *res.get(0).unwrap();
+            let diff = EXPECTED_FIRST - first_entry;
+            if diff.abs() < DELTA {
+                // We are close enough to the result here
+                return Ok(noun);
+            }
         }
     }
+    Err(())
+}
 
-    // We got the correct noun value
-    let noun = *candidate_nouns.get(noun_i as usize).unwrap();
-
-    while verb_i < 100 {
-        let verb = *candidate_verbs.get(verb_i as usize).unwrap();
-
+fn compute_verb(nums: &Vec<i64>, noun: i64) -> Result<i64, ()> {
+    // In theory, this should be 0..DELTA, but 100 works in this case.
+    for verb in 0..100 {
         let clone = nums.clone();
 
         if let Ok(res) = run_parameterized_program(clone, noun, verb) {
-            first_entry = *res.get(0).unwrap();
-            diff = expected_first_entry - first_entry;
+            let first_entry = *res.get(0).unwrap();
+            let diff = EXPECTED_FIRST - first_entry;
             if diff == 0 {
-                break;
+                return Ok(verb);
             }
         }
-
-        verb_i += 1;
     }
+    Err(())
+}
 
-    println!("noun_i={}", noun_i);
-    println!("verb_i={}", verb_i);
+fn part2() {
+    let input_string = read_to_string("input.txt").expect("Failed to open input.txt");
+    let nums = string_to_vec(input_string);
 
-    Ok(())
+    // Increasing noun, increases result by 331776
+    // Increasing verb, increases result by 1
+    // Increasing both, increases result by 331777
+    // Expected output                      19690720
+    // Just brute force search :)
+
+    let noun = compute_noun(&nums).expect("No solution for noun");
+    let verb = compute_verb(&nums, noun).expect("No solution for verb");
+
+    println!("Solution for part 2 = {}", 100 * noun + verb);
 }
 
 fn main() -> Result<(), ()> {
-    part1()?;
-    part2()?;
+    part1();
+    part2();
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{run_program, string_to_vec};
+    use crate::{run_program, string_to_vec, compute_noun, compute_verb, run_parameterized_program};
+    use std::fs::read_to_string;
 
     #[test]
     fn test1() {
@@ -177,5 +160,24 @@ mod tests {
         let nums = string_to_vec(String::from("1,1,1,4,99,5,6,0,99"));
         let result = run_program(nums).unwrap();
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_part1() {
+        let input_string = read_to_string("input.txt").expect("Failed to open input.txt");
+        let nums = string_to_vec(input_string);
+        let res = run_parameterized_program(nums, 12, 2).expect("invalid program input");
+        let first = res.get(0).unwrap();
+        assert_eq!(*first, 6087827, "first_entry is not correct")
+    }
+
+    #[test]
+    fn test_part2() {
+        let input_string = read_to_string("input.txt").expect("Failed to open input.txt");
+        let nums = string_to_vec(input_string);
+        let noun = compute_noun(&nums).expect("No solution for noun");
+        let verb = compute_verb(&nums, noun).expect("No solution for verb");
+        assert_eq!(noun, 53, "noun is not correct");
+        assert_eq!(verb, 79, "verb is not correct");
     }
 }
