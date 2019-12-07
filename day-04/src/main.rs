@@ -26,10 +26,8 @@ fn at_least_once(digits: &[u32]) -> bool {
 }
 
 fn get_possibilities(start: u32, finish: u32) -> Vec<u32> {
-    println!("start={} | finish={}", start, finish);
     (start..=finish)
         .filter(|n| {
-            println!("{}", n);
             let digits = num_to_digits(*n);
             always_increasing(&digits) && at_least_once(&digits)
         })
