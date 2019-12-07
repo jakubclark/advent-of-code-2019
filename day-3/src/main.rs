@@ -55,6 +55,7 @@ fn traverse(path: String) -> HashMap<Point, i32> {
     positions_map
 }
 
+/// Get intersection point where the manhattan distance is the lowest
 fn compute_min_manhattan(first: &HashMap<Point, i32>, second: &HashMap<Point, i32>) -> i32 {
     let first: HashSet<Point> = first.keys().cloned().collect();
     let second: HashSet<Point> = second.keys().cloned().collect();
@@ -65,7 +66,8 @@ fn compute_min_manhattan(first: &HashMap<Point, i32>, second: &HashMap<Point, i3
         .expect("No collisions")
 }
 
-fn compute_min_steps_sum(first: &HashMap<Point, i32>, second: &HashMap<Point, i32>) -> i32 {
+/// Get intersection point where sum of steps is the lowest
+fn compute_min_steps(first: &HashMap<Point, i32>, second: &HashMap<Point, i32>) -> i32 {
     let first_set: HashSet<Point> = first.keys().cloned().collect();
     let second_set: HashSet<Point> = second.keys().cloned().collect();
     first_set
@@ -76,43 +78,32 @@ fn compute_min_steps_sum(first: &HashMap<Point, i32>, second: &HashMap<Point, i3
         .expect("No min distance")
 }
 
-fn part1() -> Result<(), IoError> {
-    let f = File::open("input.txt")?;
-    let reader = BufReader::new(f);
+fn run<F>(f: F) -> Result<i32, IoError>
+where
+    F: Fn(&HashMap<Point, i32>, &HashMap<Point, i32>) -> i32,
+{
+    let fi = File::open("input.txt")?;
+    let reader = BufReader::new(fi);
 
     let all_positions: Vec<HashMap<Point, i32>> =
         reader.lines().map(Result::unwrap).map(traverse).collect();
 
     let first = all_positions.get(0).unwrap();
     let second = all_positions.get(1).unwrap();
-    let min = compute_min_manhattan(first, second);
-    println!("Solution for part 1 = {}", min);
-    Ok(())
-}
-
-fn part2() -> Result<(), IoError> {
-    let f = File::open("input.txt")?;
-    let reader = BufReader::new(f);
-
-    let all_positions: Vec<HashMap<Point, i32>> =
-        reader.lines().map(Result::unwrap).map(traverse).collect();
-
-    let first = all_positions.get(0).unwrap();
-    let second = all_positions.get(1).unwrap();
-    let min = compute_min_steps_sum(first, second);
-    println!("Solution for part 2 = {}", min);
-    Ok(())
+    Ok(f(first, second))
 }
 
 fn main() -> Result<(), IoError> {
-    part1()?;
-    part2()?;
+    let part1 = run(compute_min_manhattan)?;
+    let part2 = run(compute_min_steps)?;
+    println!("Solution for part 1 = {}", part1);
+    println!("Solution for part 2 = {}", part2);
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{compute_min_manhattan, compute_min_steps_sum, traverse};
+    use crate::{compute_min_manhattan, compute_min_steps, run, traverse};
 
     fn manhattan(s1: String, s2: String, expected: i32) {
         let points1 = traverse(s1);
@@ -128,7 +119,7 @@ mod tests {
     fn min_steps(s1: String, s2: String, expected: i32) {
         let m1 = traverse(s1);
         let m2 = traverse(s2);
-        let min_steps_sum = compute_min_steps_sum(&m1, &m2);
+        let min_steps_sum = compute_min_steps(&m1, &m2);
         assert_eq!(
             min_steps_sum, expected,
             "Expected min_steps_sum to be '{}', got '{}' instead",
@@ -162,5 +153,25 @@ mod tests {
         let s1 = String::from("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51");
         let s2 = String::from("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7");
         min_steps(s1, s2, 410);
+    }
+
+    #[test]
+    fn test5() {
+        let result = run(compute_min_manhattan).expect("Could not run");
+        assert_eq!(
+            result, 627,
+            "part1 result is wrong. expected=627, got={}",
+            result
+        );
+    }
+
+    #[test]
+    fn test6() {
+        let result = run(compute_min_steps).expect("Could not run");
+        assert_eq!(
+            result, 13190,
+            "part2 result is wrong. expected=13190, got={}",
+            result
+        );
     }
 }
