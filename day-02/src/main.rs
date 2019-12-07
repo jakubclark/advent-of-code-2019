@@ -120,7 +120,9 @@ fn main() -> Result<(), ()> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{run_program, string_to_vec, compute_noun, compute_verb, run_parameterized_program};
+    use crate::{
+        compute_noun, compute_verb, run_parameterized_program, run_program, string_to_vec,
+    };
     use std::fs::read_to_string;
 
     #[test]
