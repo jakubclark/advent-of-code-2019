@@ -78,22 +78,21 @@ fn get_number_of_transfers(map: &Map, src: &str, dest: &str) -> usize {
     find_full_path(map, src, dest).len() - 1
 }
 
-fn part1(input: &str) {
-    let map = get_direct_orbits(&input);
+fn part1(map: &Map) {
     let count = count_all_orbits(&map);
     println!("Solution for Part 1 = {}", count);
 }
 
-fn part2(input: &str) {
-    let map = get_direct_orbits(input);
+fn part2(map: &Map) {
     let number_of_transfers = get_number_of_transfers(&map, "YOU", "SAN");
     println!("Solution for Part 2 = {}", number_of_transfers);
 }
 
 fn main() {
     let input = read_to_string("input.txt").expect("Failed to open input.txt");
-    part1(&input);
-    part2(&input);
+    let map = get_direct_orbits(&input);
+    part1(&map);
+    part2(&map);
 }
 
 #[cfg(test)]
