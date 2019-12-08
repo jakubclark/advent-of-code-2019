@@ -1,6 +1,5 @@
-use std::fs::read_to_string;
 use intcode_computer::run_program;
-
+use std::fs::read_to_string;
 
 fn part1() {
     let input_string = read_to_string("input.txt").expect("Failed to open input.txt");

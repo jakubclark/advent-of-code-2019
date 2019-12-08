@@ -89,8 +89,10 @@ pub fn run_program(program: String, input: &[i64]) -> (Vec<i64>, Vec<i64>) {
             3 => {
                 let dest = memory[i + 1] as usize;
                 let input = *input.get(input_i).unwrap_or_else(|| {
-                    panic!("Not enough inputs provided. At least {} inputs expected",
-                           input_i);
+                    panic!(
+                        "Not enough inputs provided. At least {} inputs expected",
+                        input_i + 1
+                    );
                 });
                 println!("IN  {} => {}", input, dest);
                 memory[dest] = input;
@@ -143,7 +145,6 @@ pub fn run_program(program: String, input: &[i64]) -> (Vec<i64>, Vec<i64>) {
     }
     (memory, output)
 }
-
 
 #[cfg(test)]
 mod tests {
