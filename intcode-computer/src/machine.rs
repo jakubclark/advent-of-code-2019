@@ -33,6 +33,18 @@ impl Machine {
         }
     }
 
+    pub fn is_running(&self) -> bool {
+        !self.halted
+    }
+
+    pub fn push_input(&mut self, input: i64) {
+        self.input.push(input);
+    }
+
+    pub fn get_result(&self) -> i64 {
+        *self.output.last().expect("Program produced no result")
+    }
+
     /// Get the argument for `instruction`, based on it's mode
     fn get_argument(&self, instruction: &Instruction, arg_position: usize) -> i64 {
         let index = self.cur_i + arg_position + 1;
@@ -51,7 +63,7 @@ impl Machine {
     }
 
     /// Runs the program, until it is complete. Returns the resulting memory and output.
-    pub fn run_until_complete(mut self) -> (Vec<i64>, Vec<i64>) {
+    pub fn run(mut self) -> (Vec<i64>, Vec<i64>) {
         while !self.halted {
             self.step()
         }
@@ -59,17 +71,7 @@ impl Machine {
     }
 
     /// Runs the program, until an OUT instruction is executed or the program is done.
-    /// Returns the result of the OUT instruction, or None if the program has halted.
-    pub fn run_until_output(&mut self) -> Option<i64> {
-        self.step();
-        if self.halted {
-            None
-        } else {
-            self.output.last().copied()
-        }
-    }
-
-    fn step(&mut self) {
+    pub fn step(&mut self) {
         loop {
             let instruction = self.fetch_next_instruction();
             match instruction.opcode {
@@ -106,7 +108,6 @@ impl Machine {
                     let arg = self.get_argument(&instruction, 0);
                     //                println!("OUT <= {}", arg);
                     self.output.push(arg);
-                    self.input.push(arg);
                     self.cur_i += 2;
                     break;
                 }
@@ -156,5 +157,5 @@ impl Machine {
 
 pub fn run_program(program: String, input: &[i64]) -> (Vec<i64>, Vec<i64>) {
     let machine = Machine::new(program, Vec::from(input));
-    machine.run_until_complete()
+    machine.run()
 }
