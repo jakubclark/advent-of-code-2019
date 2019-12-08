@@ -1,8 +1,8 @@
 use std::fs::read_to_string;
 
 const ERR_MSG: &str = "No entry found";
-const EXPECTED_FIRST: i64 = 19690720;
-const DELTA: i64 = 331776;
+const EXPECTED_FIRST: i64 = 19_690_720;
+const DELTA: i64 = 331_776;
 
 fn string_to_vec(input: String) -> Vec<i64> {
     input
@@ -64,9 +64,9 @@ fn part1() {
     println!("Solution for part 1 = {}", first);
 }
 
-fn compute_noun(nums: &Vec<i64>) -> Result<i64, ()> {
+fn compute_noun(nums: &[i64]) -> Result<i64, ()> {
     for noun in 0..100 {
-        let clone = nums.clone();
+        let clone = Vec::from(nums);
 
         if let Ok(res) = run_parameterized_program(clone, noun, 0) {
             let first_entry = *res.get(0).unwrap();
@@ -80,10 +80,10 @@ fn compute_noun(nums: &Vec<i64>) -> Result<i64, ()> {
     Err(())
 }
 
-fn compute_verb(nums: &Vec<i64>, noun: i64) -> Result<i64, ()> {
+fn compute_verb(nums: &[i64], noun: i64) -> Result<i64, ()> {
     // In theory, this should be 0..DELTA, but 100 works in this case.
     for verb in 0..100 {
-        let clone = nums.clone();
+        let clone = Vec::from(nums);
 
         if let Ok(res) = run_parameterized_program(clone, noun, verb) {
             let first_entry = *res.get(0).unwrap();

@@ -122,7 +122,7 @@ pub fn run_program(program: String, input: i64) -> (Vec<i64>, Vec<i64>) {
                 let right = get_argument(&memory, &instruction, i, 1);
                 let dest = memory[i + 3] as usize;
                 println!("LT  {} {} => {}", left, right, dest);
-                memory[dest] = if left < right { 1 } else { 0 };
+                memory[dest] = i64::from(left < right);
                 i += 4;
             }
             8 => {
@@ -130,7 +130,7 @@ pub fn run_program(program: String, input: i64) -> (Vec<i64>, Vec<i64>) {
                 let right = get_argument(&memory, &instruction, i, 1);
                 let dest = memory[i + 3] as usize;
                 println!("EQ  {} {} => {}", left, right, dest);
-                memory[dest] = if left == right { 1 } else { 0 };
+                memory[dest] = i64::from(left == right);
                 i += 4;
             }
             99 => break,
