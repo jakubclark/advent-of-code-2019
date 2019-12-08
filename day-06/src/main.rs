@@ -34,14 +34,14 @@ fn main() {
     part1();
 }
 
-#[cfg(tests)]
+#[cfg(test)]
 mod tests {
     use crate::{count_all_orbits, get_direct_orbits};
 
     #[test]
     fn test1() {
-        let orbits = get_direct_orbits("COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L");
-        let count = count_all_orbits(&orbits);
+        let map = get_direct_orbits("COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L");
+        let count = count_all_orbits(&map);
         assert_eq!(count, 42);
     }
 }
