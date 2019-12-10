@@ -1,4 +1,4 @@
-use crate::instruction::{Instruction, Mode};
+use crate::instruction::{Instruction, Mode, Opcode::*};
 
 #[derive(Debug, Default)]
 /// A machine which is capable of running intcode programs.
@@ -10,12 +10,13 @@ pub struct Machine {
     output: Vec<i64>,
     cur_i: usize,
     input_i: usize,
+    relative_base: usize,
     halted: bool,
 }
 
 impl Machine {
     pub fn new(program: String, input: Vec<i64>) -> Self {
-        let memory: Vec<i64> = program
+        let mut memory: Vec<i64> = program
             .trim()
             .split(',')
             .collect::<Vec<&str>>()
@@ -26,6 +27,7 @@ impl Machine {
                 })
             })
             .collect();
+        memory.append(&mut vec![0; 1000]);
         Self {
             memory,
             input,
@@ -51,6 +53,7 @@ impl Machine {
         match instruction.get_mode(arg_position) {
             Mode::Position => self.memory[self.memory[index] as usize],
             Mode::Immediate => self.memory[index],
+            Mode::Relative => self.memory[index + self.relative_base],
         }
     }
 
@@ -75,23 +78,21 @@ impl Machine {
         loop {
             let instruction = self.fetch_next_instruction();
             match instruction.opcode {
-                1 => {
+                Add => {
                     let left = self.get_argument(&instruction, 0);
                     let right = self.get_argument(&instruction, 1);
                     let dest = self.memory[self.cur_i + 3] as usize;
-                    //                println!("ADD {} {} => {}", left, right, dest);
                     self.memory[dest] = left + right;
                     self.cur_i += 4;
                 }
-                2 => {
+                Mul => {
                     let left = self.get_argument(&instruction, 0);
                     let right = self.get_argument(&instruction, 1);
                     let dest = self.memory[self.cur_i + 3] as usize;
-                    //                println!("MUL {} {} => {}", left, right, dest);
                     self.memory[dest] = left * right;
                     self.cur_i += 4;
                 }
-                3 => {
+                In => {
                     let dest = self.memory[self.cur_i + 1] as usize;
                     let input = *self.input.get(self.input_i).unwrap_or_else(|| {
                         panic!(
@@ -99,57 +100,54 @@ impl Machine {
                             self.input_i + 1
                         );
                     });
-                    //                println!("IN  {} => {}", input, dest);
                     self.memory[dest] = input;
                     self.input_i += 1;
                     self.cur_i += 2;
                 }
-                4 => {
+                Out => {
                     let arg = self.get_argument(&instruction, 0);
-                    //                println!("OUT <= {}", arg);
                     self.output.push(arg);
                     self.cur_i += 2;
                     break;
                 }
-                5 => {
+                Jif => {
                     let arg = self.get_argument(&instruction, 0);
-                    //                println!("JIF {}", arg);
                     if arg != 0 {
                         self.cur_i = self.get_argument(&instruction, 1) as usize;
                     } else {
                         self.cur_i += 3;
                     }
                 }
-                6 => {
+                Jeq => {
                     let arg = self.get_argument(&instruction, 0);
-                    //                println!("JEQ {}", arg);
                     if arg == 0 {
                         self.cur_i = self.get_argument(&instruction, 1) as usize;
                     } else {
                         self.cur_i += 3;
                     }
                 }
-                7 => {
+                Lt => {
                     let left = self.get_argument(&instruction, 0);
                     let right = self.get_argument(&instruction, 1);
                     let dest = self.memory[self.cur_i + 3] as usize;
-                    //                println!("LT  {} {} => {}", left, right, dest);
                     self.memory[dest] = i64::from(left < right);
                     self.cur_i += 4;
                 }
-                8 => {
+                Eq => {
                     let left = self.get_argument(&instruction, 0);
                     let right = self.get_argument(&instruction, 1);
                     let dest = self.memory[self.cur_i + 3] as usize;
-                    //                println!("EQ  {} {} => {}", left, right, dest);
                     self.memory[dest] = i64::from(left == right);
                     self.cur_i += 4;
                 }
-                99 => {
+                Rb => {
+                    self.relative_base += self.get_argument(&instruction, 0) as usize;
+                    self.cur_i += 2;
+                }
+                Brk => {
                     self.halted = true;
                     break;
                 }
-                _ => unreachable!(),
             }
         }
     }
