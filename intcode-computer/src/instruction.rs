@@ -5,33 +5,44 @@ pub enum Mode {
     Relative,
 }
 
+impl From<i64> for Mode {
+    fn from(i: i64) -> Self {
+        match i {
+            0 => Mode::Position,
+            1 => Mode::Immediate,
+            2 => Mode::Relative,
+            _ => unreachable!(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Opcode {
-    Add,
-    Mul,
-    In,
-    Out,
-    Jif,
-    Jeq,
-    Lt,
-    Eq,
-    Rb,
-    Brk,
+    ADD,
+    MUL,
+    IN,
+    OUT,
+    JIF,
+    JEQ,
+    LT,
+    EQ,
+    RB,
+    BRK,
 }
 
 impl From<i64> for Opcode {
     fn from(i: i64) -> Self {
         match i {
-            1 => Opcode::Add,
-            2 => Opcode::Mul,
-            3 => Opcode::In,
-            4 => Opcode::Out,
-            5 => Opcode::Jif,
-            6 => Opcode::Jeq,
-            7 => Opcode::Lt,
-            8 => Opcode::Eq,
-            9 => Opcode::Rb,
-            99 => Opcode::Brk,
+            1 => Opcode::ADD,
+            2 => Opcode::MUL,
+            3 => Opcode::IN,
+            4 => Opcode::OUT,
+            5 => Opcode::JIF,
+            6 => Opcode::JEQ,
+            7 => Opcode::LT,
+            8 => Opcode::EQ,
+            9 => Opcode::RB,
+            99 => Opcode::BRK,
             _ => unreachable!("Unexpected opcode: {}", i),
         }
     }
@@ -51,12 +62,7 @@ impl Instruction {
         let mut argument_modes = vec![];
 
         while full_opcode > 0 {
-            let mode = match full_opcode % 10 {
-                0 => Mode::Position,
-                1 => Mode::Immediate,
-                2 => Mode::Relative,
-                _ => unreachable!(),
-            };
+            let mode = (full_opcode % 10).into();
             argument_modes.push(mode);
             full_opcode /= 10;
         }

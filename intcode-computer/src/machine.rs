@@ -9,8 +9,7 @@ pub struct Machine {
     input: Vec<i64>,
     output: Vec<i64>,
     cur_i: usize,
-    input_i: usize,
-    relative_base: usize,
+    relative_base: i64,
     halted: bool,
 }
 
@@ -27,7 +26,7 @@ impl Machine {
                 })
             })
             .collect();
-        memory.append(&mut vec![0; 1000]);
+        memory.append(&mut vec![0; 10000]);
         Self {
             memory,
             input,
@@ -49,11 +48,20 @@ impl Machine {
 
     /// Get the argument for `instruction`, based on it's mode
     fn get_argument(&self, instruction: &Instruction, arg_position: usize) -> i64 {
+        let val = self.memory[self.cur_i + arg_position + 1] as usize;
+        match instruction.get_mode(arg_position) {
+            Mode::Position => self.memory[val],
+            Mode::Immediate => val as i64,
+            Mode::Relative => self.memory[(self.relative_base + val as i64) as usize],
+        }
+    }
+
+    fn get_address(&self, instruction: &Instruction, arg_position: usize) -> usize {
         let index = self.cur_i + arg_position + 1;
         match instruction.get_mode(arg_position) {
-            Mode::Position => self.memory[self.memory[index] as usize],
-            Mode::Immediate => self.memory[index],
-            Mode::Relative => self.memory[index + self.relative_base],
+            Mode::Position => self.memory[index] as usize,
+            Mode::Relative => (self.relative_base + self.memory[index]) as usize,
+            Mode::Immediate => unreachable!("Immediate Mode for a write operation: {}", index),
         }
     }
 
@@ -78,39 +86,33 @@ impl Machine {
         loop {
             let instruction = self.fetch_next_instruction();
             match instruction.opcode {
-                Add => {
+                ADD => {
                     let left = self.get_argument(&instruction, 0);
                     let right = self.get_argument(&instruction, 1);
-                    let dest = self.memory[self.cur_i + 3] as usize;
+                    let dest = self.get_address(&instruction, 2);
                     self.memory[dest] = left + right;
                     self.cur_i += 4;
                 }
-                Mul => {
+                MUL => {
                     let left = self.get_argument(&instruction, 0);
                     let right = self.get_argument(&instruction, 1);
-                    let dest = self.memory[self.cur_i + 3] as usize;
+                    let dest = self.get_address(&instruction, 2);
                     self.memory[dest] = left * right;
                     self.cur_i += 4;
                 }
-                In => {
-                    let dest = self.memory[self.cur_i + 1] as usize;
-                    let input = *self.input.get(self.input_i).unwrap_or_else(|| {
-                        panic!(
-                            "Not enough inputs provided. At least {} inputs expected",
-                            self.input_i + 1
-                        );
-                    });
+                IN => {
+                    let input = self.input.remove(0);
+                    let dest = self.get_address(&instruction, 0);
                     self.memory[dest] = input;
-                    self.input_i += 1;
                     self.cur_i += 2;
                 }
-                Out => {
+                OUT => {
                     let arg = self.get_argument(&instruction, 0);
                     self.output.push(arg);
                     self.cur_i += 2;
                     break;
                 }
-                Jif => {
+                JIF => {
                     let arg = self.get_argument(&instruction, 0);
                     if arg != 0 {
                         self.cur_i = self.get_argument(&instruction, 1) as usize;
@@ -118,7 +120,7 @@ impl Machine {
                         self.cur_i += 3;
                     }
                 }
-                Jeq => {
+                JEQ => {
                     let arg = self.get_argument(&instruction, 0);
                     if arg == 0 {
                         self.cur_i = self.get_argument(&instruction, 1) as usize;
@@ -126,25 +128,25 @@ impl Machine {
                         self.cur_i += 3;
                     }
                 }
-                Lt => {
+                LT => {
                     let left = self.get_argument(&instruction, 0);
                     let right = self.get_argument(&instruction, 1);
-                    let dest = self.memory[self.cur_i + 3] as usize;
+                    let dest = self.get_address(&instruction, 2);
                     self.memory[dest] = i64::from(left < right);
                     self.cur_i += 4;
                 }
-                Eq => {
+                EQ => {
                     let left = self.get_argument(&instruction, 0);
                     let right = self.get_argument(&instruction, 1);
-                    let dest = self.memory[self.cur_i + 3] as usize;
+                    let dest = self.get_address(&instruction, 2);
                     self.memory[dest] = i64::from(left == right);
                     self.cur_i += 4;
                 }
-                Rb => {
-                    self.relative_base += self.get_argument(&instruction, 0) as usize;
+                RB => {
+                    self.relative_base += self.get_argument(&instruction, 0);
                     self.cur_i += 2;
                 }
-                Brk => {
+                BRK => {
                     self.halted = true;
                     break;
                 }

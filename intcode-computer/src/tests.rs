@@ -38,8 +38,8 @@ fn test4() {
 #[test]
 fn test5() {
     let program = String::from("3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9");
-    let (_, output) = run_program(program, &vec![50]);
-    assert_eq!(output, vec![1]);
+    let (_, output) = run_program(program, &vec![0]);
+    assert_eq!(output, vec![0]);
 }
 
 #[test]
