@@ -46,6 +46,10 @@ impl Machine {
         *self.output.last().expect("Program produced no result")
     }
 
+    pub fn get_output(&self) -> &Vec<i64> {
+        &self.output
+    }
+
     /// Get the argument for `instruction`, based on it's mode
     fn get_argument(&self, instruction: &Instruction, arg_position: usize) -> i64 {
         let val = self.memory[self.cur_i + arg_position + 1] as usize;
