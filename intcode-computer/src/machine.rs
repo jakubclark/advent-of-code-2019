@@ -6,7 +6,7 @@ use crate::instruction::{Instruction, Mode, Opcode::*};
 /// Once done, it returns its memory and a vector of output values (if any).
 pub struct Machine {
     memory: Vec<i64>,
-    input: Vec<i64>,
+    pub input: i64,
     output: Vec<i64>,
     cur_i: usize,
     relative_base: i64,
@@ -14,7 +14,7 @@ pub struct Machine {
 }
 
 impl Machine {
-    pub fn new(program: String, input: Vec<i64>) -> Self {
+    pub fn new(program: String, input: i64) -> Self {
         let mut memory: Vec<i64> = program
             .trim()
             .split(',')
@@ -34,12 +34,17 @@ impl Machine {
         }
     }
 
+    pub fn set_memory(&mut self, idx: usize, val: i64) {
+        self.memory[idx] = val;
+    }
+
     pub fn is_running(&self) -> bool {
         !self.halted
     }
 
     pub fn push_input(&mut self, input: i64) {
-        self.input.push(input);
+        //        self.input.push(input);
+        self.input = input;
     }
 
     pub fn get_result(&self) -> i64 {
@@ -105,9 +110,11 @@ impl Machine {
                     self.cur_i += 4;
                 }
                 IN => {
-                    let input = self.input.remove(0);
+                    //                    println!("input_before={:?}", self.input);
+                    //                    let input = self.input.remove(0);
+                    //                    println!("input_after={:?}", self.input);
                     let dest = self.get_address(&instruction, 0);
-                    self.memory[dest] = input;
+                    self.memory[dest] = self.input;
                     self.cur_i += 2;
                 }
                 OUT => {
@@ -159,7 +166,7 @@ impl Machine {
     }
 }
 
-pub fn run_program(program: String, input: &[i64]) -> (Vec<i64>, Vec<i64>) {
-    let machine = Machine::new(program, Vec::from(input));
+pub fn run_program(program: String, input: i64) -> (Vec<i64>, Vec<i64>) {
+    let machine = Machine::new(program, input);
     machine.run()
 }

@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn test4() {
-        assert_eq!(fuel_for_mass(100756.0), 33583.0);
+        assert_eq!(fuel_for_mass(100_756.0), 33583.0);
     }
 
     #[test]
@@ -88,6 +88,6 @@ mod tests {
 
     #[test]
     fn test7() {
-        assert_eq!(fuel_for_mass_and_fuel(100756.0), 50346.0);
+        assert_eq!(fuel_for_mass_and_fuel(100_756.0), 50346.0);
     }
 }

@@ -170,7 +170,7 @@ mod tests {
         let nums = string_to_vec(input_string);
         let res = run_parameterized_program(nums, 12, 2).expect("invalid program input");
         let first = res.get(0).unwrap();
-        assert_eq!(*first, 6087827, "first_entry is not correct")
+        assert_eq!(*first, 6_087_827, "first_entry is not correct")
     }
 
     #[test]

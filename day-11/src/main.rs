@@ -51,7 +51,7 @@ struct Robot {
 
 impl Robot {
     pub fn new(program: String, starting_color: Color) -> Self {
-        let machine = Machine::new(program, vec![starting_color.to_num()]);
+        let machine = Machine::new(program, starting_color.to_num());
         Self {
             x: 0,
             y: 0,
